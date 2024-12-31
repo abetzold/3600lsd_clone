@@ -3,12 +3,78 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>View Violations</title>
+    <title>View Reported Violations</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: #f4f4f4;
+        }
+        h1 {
+            text-align: center;
+            margin: 20px 0;
+        }
+        .violation {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            margin: 10px auto;
+            padding: 15px;
+            width: 80%;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        .violation p {
+            margin: 5px 0;
+        }
+        .error {
+            color: red;
+            text-align: center;
+        }
+    </style>
 </head>
 <body>
     <h1>Reported Violations</h1>
-    <div>
-        <p>No violations reported yet.</p>
+    <div id="violations-container">
+        <p>Loading violations...</p>
     </div>
+
+    <script>
+        async function fetchViolations() {
+            try {
+                // Fetch data from the backend
+                const response = await fetch('/.netlify/functions/get-violations');
+                if (!response.ok) {
+                    throw new Error('Failed to fetch violations');
+                }
+
+                const violations = await response.json();
+                const container = document.getElementById('violations-container');
+                container.innerHTML = ''; // Clear initial content
+
+                if (violations.length === 0) {
+                    container.innerHTML = '<p>No violations reported yet.</p>';
+                    return;
+                }
+
+                // Display each violation in a styled div
+                violations.forEach(violation => {
+                    const div = document.createElement('div');
+                    div.className = 'violation';
+                    div.innerHTML = `
+                        <p><strong>Description:</strong> ${violation.violation}</p>
+                        <p><em>Reported at:</em> ${new Date(violation.timestamp).toLocaleString()}</p>
+                    `;
+                    container.appendChild(div);
+                });
+            } catch (error) {
+                console.error('Error fetching violations:', error);
+                document.getElementById('violations-container').innerHTML = '<p class="error">Error loading violations. Please try again later.</p>';
+            }
+        }
+
+        // Fetch violations on page load
+        fetchViolations();
+    </script>
 </body>
 </html>

@@ -4,19 +4,104 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Report a Violation</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background: #f4f4f4;
+        }
+        .form-container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin: 10px 0 5px;
+        }
+        textarea {
+            width: 100%;
+            height: 100px;
+            margin-bottom: 10px;
+        }
+        input[type="checkbox"] {
+            margin-right: 5px;
+        }
+        button {
+            background: #0078ff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #0056cc;
+        }
+    </style>
 </head>
 <body>
-    <h1>Report a Potential Code Violation</h1>
-    <form>
-        <label>Description:</label><br>
-        <textarea required></textarea><br>
-        <label>
-            <input type="checkbox" required> I confirm this is not a tenant/management dispute.
-        </label><br>
-        <label>
-            <input type="checkbox" required> I am human.
-        </label><br>
-        <button type="submit">Submit</button>
-    </form>
+    <div class="form-container">
+        <h1>Report a Potential Code Violation</h1>
+        <form id="violationForm">
+            <label for="violation">Description:</label>
+            <textarea id="violation" name="violation" required></textarea>
+
+            <label>
+                <input type="checkbox" id="acknowledgment" required>
+                I confirm this is not a tenant/management dispute.
+            </label><br>
+            <label>
+                <input type="checkbox" id="human-check" required>
+                I am human.
+            </label><br>
+
+            <button type="button" onclick="submitViolation()">Submit</button>
+        </form>
+    </div>
+
+    <script>
+        async function submitViolation() {
+            const violation = document.getElementById('violation').value;
+            const acknowledgment = document.getElementById('acknowledgment').checked;
+            const humanCheck = document.getElementById('human-check').checked;
+
+            // Check if all fields are valid
+            if (!acknowledgment || !humanCheck || violation.trim() === '') {
+                alert('Please fill out all fields and check the boxes.');
+                return;
+            }
+
+            try {
+                const response = await fetch('/.netlify/functions/add-violation', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ violation })
+                });
+
+                if (response.ok) {
+                    alert('Violation submitted successfully.');
+                    window.location.href = '/violations.html';
+                } else {
+                    const error = await response.text();
+                    console.error('Error:', error);
+                    alert('Failed to submit violation.');
+                }
+            } catch (error) {
+                console.error('Network Error:', error);
+                alert('Failed to submit violation. Please try again later.');
+            }
+        }
+    </script>
 </body>
 </html>
